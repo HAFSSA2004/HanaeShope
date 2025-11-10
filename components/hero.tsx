@@ -22,7 +22,7 @@ export default function Hero() {
 
           {/* Image */}
           <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-            <img src="/elegant-hijabi-woman-wearing-luxury-modest-clothin.jpg" alt="hanaeShop collection" className="w-full h-full object-cover" />
+            <img src="/z.jpeg " alt="hanaeShop collection" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
