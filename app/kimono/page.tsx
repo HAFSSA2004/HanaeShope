@@ -8,7 +8,7 @@ export default function DressPage() {
       price: "$120",
       image: "/kimono9ahwi.jpeg",
     },
-    {
+   /** {
       id: 2,
       name: "Chic Summer Dress",
       description: "Lightweight cotton perfect for summer days.",
@@ -66,7 +66,7 @@ export default function DressPage() {
       description: "Timeless black dress suitable for any event.",
       price: "$150",
       image: "/9ahwi.jpeg",
-    },
+    }, */
   ]
 
   return (
