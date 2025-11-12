@@ -74,11 +74,7 @@ export default function DressPage() {
    <Navbar/>
     <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">Kimono Collection</h1>
-        <p className="text-foreground/60 text-lg mb-12">
-          Timeless silhouettes for elegant occasions
-        </p>
-
+        <h1 className="text-3xl md:text-4xl font-serif font-bold mt-4 text-center" style={{marginTop:"40px"}}>Kimono Collection</h1>
         {/* Dress products grid */}
         <div className="grid md:grid-cols-3 gap-8">
           {dresses.map((dress) => (

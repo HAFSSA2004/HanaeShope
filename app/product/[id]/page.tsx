@@ -1,8 +1,11 @@
 "use client"
 
-import { useState, use } from "react"
+import { useParams } from "next/navigation"
+import { useState } from "react"
+import { useCart } from "@/hooks/use-cart"
 import Navbar from "@/components/navbar"
-import { useCartContext } from "@/hooks/use-cart"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 
 const dresses = [
   {
@@ -10,6 +13,7 @@ const dresses = [
     name: "Elegant Ziti Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 180",
+    priceNumber: 180,
     colors: { ziti: "/zitirobe.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "ziti",
@@ -19,6 +23,7 @@ const dresses = [
     name: "Chic Summer Dress",
     description: "Lightweight cotton perfect for summer days.",
     price: "DH 200",
+    priceNumber: 200,
     colors: { ziti: "/ziti.jpeg", black: "/bleumarie.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "ziti",
@@ -28,6 +33,7 @@ const dresses = [
     name: "Classic Dress",
     description: "Timeless dress suitable for any event.",
     price: "DH 180",
+    priceNumber: 180,
     colors: { beige: "/beige.jpeg", maroon: "/hmar.jpeg", brown: "/9ahwi.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "beige",
@@ -37,6 +43,7 @@ const dresses = [
     name: "Elegant Brown Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 250",
+    priceNumber: 250,
     colors: { brown: "/brown.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "brown",
@@ -46,15 +53,18 @@ const dresses = [
     name: "Elegant Borgandi Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 220",
+    priceNumber: 220,
     colors: { burgundy: "/borgandi.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "burgundy",
   },
+
   {
     id: 7,
     name: "Elegant Black Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 180",
+    priceNumber: 180,
     colors: { black: "/khal.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "black",
@@ -64,6 +74,7 @@ const dresses = [
     name: "Elegant Gray Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 200",
+    priceNumber: 200,
     colors: { gray: "/gris.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "gray",
@@ -73,6 +84,7 @@ const dresses = [
     name: "Elegant Borgandi kabardina",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 220",
+    priceNumber: 220,
     colors: { burgundy: "/gabardina.jpeg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "burgundy",
@@ -88,14 +100,15 @@ const colorMap: { [key: string]: string } = {
   ziti: "#224605ff",
 }
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const dress = dresses.find((d) => d.id === Number.parseInt(id))
-
-  const { addItem } = useCartContext() // <-- use the cart context
+export default function ProductDetailPage() {
+  const params = useParams()
+  const dress = dresses.find((d) => d.id === Number(params.id))
+  const { addItem } = useCart()
 
   const [selectedColor, setSelectedColor] = useState(dress?.defaultColor || "")
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   if (!dress) {
     return (
@@ -116,53 +129,62 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       return
     }
 
-    addItem({
-      id: `${dress.id}-${selectedColor}-${selectedSize}`, // unique id for each variant
-      name: dress.name,
-      price: parseInt(dress.price.replace("DH ", "")), // convert price string to number
-      quantity: 1,
-      image: currentImage,
-      color: selectedColor,
-      size: selectedSize,
-    })
+    setIsAdding(true)
 
-    alert("Added to cart!")
+   const cartItem = {
+  id: `${dress.id}-${selectedColor}-${selectedSize}`,
+  name: dress.name,
+  price: dress.priceNumber, // ✅ numeric value
+  quantity: 1,
+  image: currentImage,
+  color: selectedColor,
+  size: selectedSize,
+}
+
+    addItem(cartItem)
+    setShowSuccess(true)
+
+    setTimeout(() => {
+      setIsAdding(false)
+      setShowSuccess(false)
+    }, 2000)
   }
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-background">
-        {/* Main content */}
+        {/* Back button */}
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border">
+          <Link href="/products" className="flex items-center p-4">
+            <ChevronLeft className="w-6 h-6" />
+            <span className="ml-2">Back to Products</span>
+          </Link>
+        </div>
+
+        {/* Main content - Left image, Right details */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Left: Image */}
-            <div
-              style={{
-                width: "300px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                margin: "0 auto",
-              }}
-            >
+            <div className="flex justify-center items-center">
               <img
                 src={currentImage || "/placeholder.svg"}
                 alt={dress.name}
-                className="w-full h-full object-cover max-h-[400px]"
+                className="w-full max-w-sm object-cover rounded-lg"
               />
             </div>
 
             {/* Right: Product Details */}
-            <div className="flex flex-col justify-start" style={{ marginTop: "70px" }}>
-              <h1 className="text-4xl font-serif font-bold mt-4">{dress.name}</h1>
+            <div className="flex flex-col justify-start">
+              <h1 className="text-4xl font-serif font-bold">{dress.name}</h1>
               <p className="text-foreground/70 text-lg mt-4">{dress.description}</p>
 
+              {/* Price */}
               <div className="mb-6">
                 <p className="text-3xl font-bold text-foreground">{dress.price}</p>
               </div>
 
-              {/* Colors */}
+              {/* Colors Section */}
               <div className="mb-6">
                 <h3 className="text-sm font-semibold mb-3">Available Colors</h3>
                 <div className="flex gap-4 flex-wrap">
@@ -188,7 +210,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
 
-              {/* Sizes */}
+              {/* Sizes Section */}
               <div className="mb-8">
                 <h3 className="text-sm font-semibold mb-3">Select Size</h3>
                 <div className="flex flex-wrap gap-2">
@@ -213,12 +235,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
 
-              {/* Add to Cart */}
               <button
-                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity duration-200"
                 onClick={handleAddToCart}
+                disabled={isAdding || !selectedSize}
+                className="mt-6 w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add to Cart
+                {isAdding ? "Adding..." : showSuccess ? "Added to Cart!" : "Add to Cart"}
               </button>
 
               {/* Additional Info */}

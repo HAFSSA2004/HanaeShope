@@ -70,12 +70,23 @@ export default function DressGalleryPage() {
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       defaultColor: "gray",
     },
+    {
+      id: 9,
+      name: "Elegant Borgandi Kabardina",
+      description: "A luxurious silk dress for special occasions.",
+      price: "DH 220",
+      colors: { burgundy: "/gabardina.jpeg" },
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      defaultColor: "burgundy",
+    },
   ]
 
   const [likedDresses, setLikedDresses] = useState<number[]>([])
 
   const toggleLike = (dressId: number) => {
-    setLikedDresses((prev) => (prev.includes(dressId) ? prev.filter((id) => id !== dressId) : [...prev, dressId]))
+    setLikedDresses((prev) =>
+      prev.includes(dressId) ? prev.filter((id) => id !== dressId) : [...prev, dressId]
+    )
   }
 
   return (
@@ -83,41 +94,37 @@ export default function DressGalleryPage() {
       <Navbar />
       <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold mt-4">Dress Collection</h1>
-          <p className="text-foreground/70 text-base mb-8">Click on any dress to view details</p>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold mt-4 text-center " style={{marginTop:'50px'}}>Dress Collection</h1>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-10">
             {dresses.map((dress) => {
               const currentImage = dress.colors[dress.defaultColor as keyof typeof dress.colors]
               const isLiked = likedDresses.includes(dress.id)
 
               return (
-                <Link key={dress.id} href={`/dress/${dress.id}`}>
-                  <div className="relative group cursor-pointer overflow-hidden rounded-lg aspect-square bg-muted">
+                <div key={dress.id} className="relative group cursor-pointer overflow-hidden rounded-lg aspect-square bg-muted">
+                  <Link href={`/dress/${dress.id}`}>
                     <img
                       src={currentImage || "/placeholder.svg"}
                       alt={dress.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                  </Link>
 
-                    {/* Like button overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-end justify-end p-3">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          toggleLike(dress.id)
-                        }}
-                        className="bg-white rounded-full p-2 hover:bg-foreground/10 transition-colors duration-200"
-                      >
-                        <Heart
-                          size={20}
-                          className={isLiked ? "fill-destructive text-destructive" : "text-foreground"}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
+                  {/* Heart button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      toggleLike(dress.id)
+                    }}
+                    className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isLiked ? "bg-red-500 text-white" : "bg-white text-red-500"
+                    }`}
+                  >
+                    <Heart className="w-5 h-5" />
+                  </button>
+                </div>
               )
             })}
           </div>
