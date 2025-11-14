@@ -10,7 +10,7 @@ const dresses = [
     name: "Elegant Ziti Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 180",
-    colors: { ziti: "/zitirobe.jpeg" },
+    colors: { ziti: "https://i.ibb.co/cctY5XTd/z.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "ziti",
   },
@@ -19,16 +19,20 @@ const dresses = [
     name: "Chic Summer Dress",
     description: "Lightweight cotton perfect for summer days.",
     price: "DH 200",
-    colors: { ziti: "/ziti.jpeg", black: "/bleumarie.jpeg" },
+    colors: { black: "https://i.ibb.co/bpcdNrj/bleumarie.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    defaultColor: "ziti",
+    defaultColor: "black",
   },
   {
     id: 3,
     name: "Classic Dress",
     description: "Timeless dress suitable for any event.",
     price: "DH 180",
-    colors: { beige: "/beige.jpeg", maroon: "/hmar.jpeg", brown: "/9ahwi.jpeg" },
+    colors: {
+      beige: "https://i.ibb.co/fz0zQtk6/beige.jpg",
+      maroon: "https://i.ibb.co/Rkwd1Mhz/hmar.jpg",
+      brown: "https://i.ibb.co/0yGpVLrF/9ahwi.jpg",
+    },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "beige",
   },
@@ -37,7 +41,7 @@ const dresses = [
     name: "Elegant Brown Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 250",
-    colors: { brown: "/brown.jpeg" },
+    colors: { brown: "https://i.ibb.co/S7MdDb8X/brown.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "brown",
   },
@@ -46,7 +50,7 @@ const dresses = [
     name: "Elegant Borgandi Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 220",
-    colors: { burgundy: "/borgandi.jpeg" },
+    colors: { burgundy:"https://i.ibb.co/Q3gV3Y8z/borgandi.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "burgundy",
   },
@@ -55,7 +59,7 @@ const dresses = [
     name: "Elegant Black Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 180",
-    colors: { black: "/khal.jpeg" },
+    colors: { black: "https://i.ibb.co/HfpbP4bt/khal.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "black",
   },
@@ -64,16 +68,16 @@ const dresses = [
     name: "Elegant Gray Dress",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 200",
-    colors: { gray: "/gris.jpeg" },
+    colors: { gray: "https://i.ibb.co/hx0hctNv/gris.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "gray",
   },
   {
     id: 9,
-    name: "Elegant Borgandi kabardina",
+    name: "Elegant Borgandi Kabardina",
     description: "A luxurious silk dress for special occasions.",
     price: "DH 220",
-    colors: { burgundy: "/gabardina.jpeg" },
+    colors: { burgundy: "https://i.ibb.co/Djq0yF4/gabardina.jpg" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     defaultColor: "burgundy",
   },
@@ -91,8 +95,7 @@ const colorMap: { [key: string]: string } = {
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const dress = dresses.find((d) => d.id === Number.parseInt(id))
-
-  const { addItem } = useCartContext() // <-- use the cart context
+  const { addItem } = useCartContext()
 
   const [selectedColor, setSelectedColor] = useState(dress?.defaultColor || "")
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
@@ -117,11 +120,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
 
     addItem({
-      id: `${dress.id}-${selectedColor}-${selectedSize}`, // unique id for each variant
+      id: `${dress.id}-${selectedColor}-${selectedSize}`,
       name: dress.name,
-      price: parseInt(dress.price.replace("DH ", "")), // convert price string to number
+      price: parseInt(dress.price.replace("DH ", "")),
       quantity: 1,
-      image: currentImage,
+      image: currentImage, // full URL
       color: selectedColor,
       size: selectedSize,
     })
@@ -133,19 +136,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     <>
       <Navbar />
       <div className="min-h-screen bg-background">
-        {/* Main content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Left: Image */}
-            <div
-              style={{
-                width: "300px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                margin: "0 auto",
-              }}
-            >
+            <div style={{ width: "300px", display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto" }}>
               <img
                 src={currentImage || "/placeholder.svg"}
                 alt={dress.name}
@@ -153,7 +146,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               />
             </div>
 
-            {/* Right: Product Details */}
             <div className="flex flex-col justify-start" style={{ marginTop: "70px" }}>
               <h1 className="text-4xl font-serif font-bold mt-4">{dress.name}</h1>
               <p className="text-foreground/70 text-lg mt-4">{dress.description}</p>
@@ -170,11 +162,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`rounded-full transition-all duration-200 shadow-md hover:shadow-lg ${
-                        selectedColor === color
-                          ? "ring-2 ring-offset-2 ring-foreground scale-110"
-                          : "border-2 border-border hover:scale-105"
-                      }`}
+                      className={`rounded-full transition-all duration-200 shadow-md hover:shadow-lg ${selectedColor === color ? "ring-2 ring-offset-2 ring-foreground scale-110" : "border-2 border-border hover:scale-105"}`}
                       style={{ backgroundColor: colorMap[color] || color, width: "30px", height: "30px" }}
                       title={color}
                       aria-label={`Select ${color} color`}
@@ -196,11 +184,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        selectedSize === size
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
-                          : "bg-muted text-foreground border border-border hover:bg-muted/80"
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${selectedSize === size ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2" : "bg-muted text-foreground border border-border hover:bg-muted/80"}`}
                     >
                       {size}
                     </button>

@@ -1,44 +1,83 @@
 "use client"
 
+import { useState } from "react"
 import { useCartContext } from "@/hooks/use-cart"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react"
 import Navbar from "@/components/navbar"
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity } = useCartContext()
+  const { items, removeItem, updateQuantity, clearCart } = useCartContext()
+  const router = useRouter()
+
+  const [city, setCity] = useState("tanger")
+  const [fullName, setFullName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
+  const [zip, setZip] = useState("")
+  const [notes, setNotes] = useState("")
+  const [email, setEmail] = useState("")
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  // Delivery fee instead of tax
-  const deliveryFee = 50 // change this value as needed
+  const deliveryFees = {
+    tanger: 20,
+    casablanca: 30,
+    rabat: 30,
+    agadir: 35,
+    l3ayoun: 45,
+    hocaima: 45,
+    other: 35
+  }
+
+  const deliveryFee = deliveryFees[city] || deliveryFees["other"]
   const total = subtotal + deliveryFee
+
+  const handlePayOnDelivery = async () => {
+    const orderData = {
+      fullName,
+      phone,
+      address,
+      zip,
+      notes,
+      email,
+      city,
+      items,
+      subtotal,
+      deliveryFee,
+      total,
+      date: new Date().toISOString()
+    }
+
+    const response = await fetch("/api/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData)
+    })
+
+    if (response.ok) {
+      // ✅ Reset cart and form fields
+      clearCart()
+      setFullName("")
+      setPhone("")
+      setAddress("")
+      setZip("")
+      setNotes("")
+      setEmail("")
+      setCity("tanger")
+
+      router.push("/order-success")
+    } else {
+      alert("Something went wrong. Try again.")
+    }
+  }
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b border-border bg-card">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <h1 className="text-2xl font-semibold text-foreground">Your Store</h1>
-          </div>
-        </div>
-
-        {/* Empty State */}
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <ShoppingBag className="w-16 h-16 text-muted-foreground" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-2">Your cart is empty</h2>
-              <p className="text-muted-foreground mb-6">Add some items to get started</p>
-              <Link href="/">
-                <Button>Continue Shopping</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <ShoppingBag className="w-16 h-16 text-muted-foreground" />
+        <h2 className="text-2xl font-semibold mt-4">Your cart is empty</h2>
       </div>
     )
   }
@@ -46,123 +85,121 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background">
-        <h1 className="text-3xl font-semibold text-foreground text-center" style={{ marginTop: '90px' }}>
-          Shopping Cart
-        </h1>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-6 bg-card border border-border rounded-lg p-6 hover:shadow-sm transition-shadow"
-                >
-                  {/* Product Image */}
-                  <div className="flex-shrink-0">
-                    <img
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
-                      className="w-24 h-24 object-cover rounded bg-muted"
-                    />
-                  </div>
+      <div className="min-h-screen bg-background pt-24">
+        <h1 className="text-3xl font-semibold text-center">Shopping Cart</h1>
 
-                  {/* Product Details */}
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground truncate">{item.name}</h3>
-                      {item.size && (
-                        <p className="text-sm text-muted-foreground mt-1">Size: {item.size}</p>
-                      )}
-                      <p className="text-muted-foreground text-sm mt-1">DH {item.price.toFixed(2)} </p>
+        <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-4">
+            {items.map((item) => (
+              <div key={item.id} className="flex gap-6 border p-6 rounded-lg bg-card">
+                <img src={item.image} className="w-24 h-24 object-cover rounded" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{item.name}</h3>
+                  {item.size && <p className="text-sm text-muted-foreground">Size: {item.size}</p>}
+                  <p className="mt-1">DH {item.price}</p>
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="flex border rounded-lg">
+                      <button
+                        onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                        className="p-2"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="px-3">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="p-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-3 mt-4">
-                      <div className="inline-flex items-center border border-border rounded-lg bg-muted">
-                        <button
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                          className="p-2 hover:bg-background transition-colors"
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-2 hover:bg-background transition-colors"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground ml-auto">
-                        DH {(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
+                    <span className="ml-auto font-semibold">
+                      DH {(item.price * item.quantity).toFixed(2)}
+                    </span>
                   </div>
-
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="flex-shrink-0 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
-                    aria-label="Remove item"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
                 </div>
-              ))}
+
+                <button onClick={() => removeItem(item.id)} className="text-destructive">
+                  <Trash2 />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Order Summary */}
+          <div className="border p-6 rounded-lg bg-card space-y-6">
+
+            <h2 className="text-xl font-semibold">Order Summary</h2>
+
+            {/* City */}
+            <div>
+              <label className="text-sm">City</label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full border p-2 rounded-lg bg-muted mt-1"
+              >
+                <option value="tanger">Tanger</option>
+                <option value="casablanca">Casablanca</option>
+                <option value="rabat">Rabat</option>
+                <option value="agadir">Agadir</option>
+                <option value="l3ayoun">L3ayoun</option>
+                <option value="hocaima">Hocaima</option>
+                <option value="other">Other</option>
+              </select>
             </div>
 
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-card border border-border rounded-lg p-6 sticky top-4 space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-4">Order Summary</h2>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium text-foreground">DH {subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Delivery Fee</span>
-                      <span className="font-medium text-foreground">DH {deliveryFee.toFixed(2)}</span>
-                    </div>
-                    <div className="border-t border-border pt-3 flex justify-between items-center">
-                      <span className="font-semibold text-foreground">Total</span>
-                      <span className="text-lg font-bold text-foreground">DH {total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
+            {/* Delivery Info */}
+            <div className="space-y-3">
+              <h3 className="font-semibold">Delivery Information</h3>
 
-                {/* Checkout Button */}
-                <Link href="/checkout" className="block">
-                  <Button size="lg" className="w-full">
-                    Proceed to Checkout
-                  </Button>
-                </Link>
+              <input className="input" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <input className="input" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <input className="input" placeholder="Email (for receipt)" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="input" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <input className="input" placeholder="Zip Code" value={zip} onChange={(e) => setZip(e.target.value)} />
 
-                {/* Pay on Delivery Button */}
-                <Link href="/cod-confirmation" className="block">
-                  <Button size="lg" variant="secondary" className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white">
-                    Pay on Delivery
-                  </Button>
-                </Link>
+              <textarea
+                className="input"
+                placeholder="Notes (optional)"
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
 
-                {/* Continue Shopping */}
-                <Link href="/" className="block">
-                  <Button variant="outline" size="lg" className="w-full bg-transparent mt-2">
-                    Continue Shopping
-                  </Button>
-                </Link>
+            {/* Summary */}
+            <div className="text-sm">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>DH {subtotal.toFixed(2)}</span>
+              </div>
 
-                <p className="text-xs text-muted-foreground text-center mt-4">Free shipping on orders over DH 500</p>
+              <div className="flex justify-between">
+                <span>Delivery Fee</span>
+                <span>DH {deliveryFee}</span>
+              </div>
+
+              <div className="flex justify-between font-semibold border-t pt-2 mt-2">
+                <span>Total</span>
+                <span>DH {total.toFixed(2)}</span>
               </div>
             </div>
+
+            {/* Pay On Delivery */}
+            <Button
+              onClick={handlePayOnDelivery}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              Pay on Delivery
+            </Button>
           </div>
+
         </div>
       </div>
     </>
